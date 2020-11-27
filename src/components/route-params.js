@@ -140,7 +140,17 @@ function paramsRow (schema, field) {
   let type = schema._type;
   if(type === 'alternatives') {
     const schemas = get(schema, '_inner.matches', []);
-    type = schemas.map(s => s.schema._type).join(' | ');
+    type = schemas.map((s) => {
+      if (!s.schema) {
+        const thenType = s.then && s.then._type;
+        const otherwiseType = s.otherwise && s.otherwise._type;
+        if (thenType === otherwiseType) {
+          return thenType
+        }
+        return [thenType, otherwiseType].filter(t => !!t).join(" | ");
+      }
+      return s.schema && s.schema._type
+    }).join(" | ");
   }
   return m('tr', [
     m('td', field + (flags.default !== undefined ? ` = ${flags.default}` : '')),
